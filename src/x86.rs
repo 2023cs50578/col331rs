@@ -19,6 +19,7 @@ pub unsafe fn outb(port: u16 , value: u8) {
         options(nomem, nostack)
     );
 }
+#[allow(dead_code)]
 pub unsafe fn inw(port: u16) -> u16 {
     let result: u16;
     asm!(
@@ -37,6 +38,7 @@ pub unsafe fn outw(port: u16 , value: u16) {
         options(nomem, nostack)
     );
 }
+#[allow(dead_code)]
 pub unsafe fn inl(port: u16) -> u32 {
     let result: u32;
     asm!(
@@ -48,6 +50,7 @@ pub unsafe fn inl(port: u16) -> u32 {
     
     result
 }
+#[allow(dead_code)]
 pub unsafe fn outl(port: u16 , value: u32) {
     asm!(
         "out dx, eax",
