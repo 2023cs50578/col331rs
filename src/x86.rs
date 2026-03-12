@@ -1,5 +1,18 @@
 use core::arch::asm;
 
+pub fn readeflags() -> u32 {
+    let eflags: u32;
+    unsafe {
+        asm!(
+            "pushfd",
+            "pop {0:e}",
+            out(reg) eflags,
+            options(nomem, nostack)
+        );
+    }
+    eflags
+}
+
 pub fn inb(port: u16) -> u8 {
     let result: u8;
     unsafe { 

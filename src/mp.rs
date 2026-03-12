@@ -71,12 +71,13 @@ pub const MPLINTR: u8 = 0x04;    // One per system interrupt source
 pub struct MPWriteOnce {
   pub lapic_base: OnceCell<*mut u32>,
   pub ioapic_id: OnceCell<u8>,
-  pub cpus: OnceCell<[Cpu; NCPU]>
+  pub cpus: OnceCell<[Cpu; NCPU]>,
+  pub ncpu: OnceCell<usize>,
 }
 
 unsafe impl Sync for MPWriteOnce {}
 
-pub static MP_ONCE: MPWriteOnce = MPWriteOnce { lapic_base: OnceCell::new(), ioapic_id: OnceCell::new(), cpus: OnceCell::new() };
+pub static MP_ONCE: MPWriteOnce = MPWriteOnce { lapic_base: OnceCell::new(), ioapic_id: OnceCell::new(), cpus: OnceCell::new(), ncpu: OnceCell::new() };
 
 /// Calculates sum of bytes in a memory region
 /// 
@@ -233,6 +234,7 @@ pub fn mpinit() {
       panic!("Didn't find a suitable machine");
   }
   MP_ONCE.cpus.set(cpus);
+  MP_ONCE.ncpu.set(ncpu);
 
   if mp.imcrp != 0 {
     // Bochs doesn't support IMCR, so this doesn't run on Bochs.
