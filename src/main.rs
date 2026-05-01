@@ -20,15 +20,15 @@ use ioapic::*;
 use picirq::*;
 use mp::*;
 
-#[macro_export]
-macro_rules! println {
-    ($($arg:tt)*) => ({
-        use core::fmt::*;
-        use crate::console::Console;
-        let mut c = Console {};
-        let _ = writeln!(&mut c, $($arg)*);
-    });
-}
+// #[macro_export]
+// macro_rules! println {
+//     ($($arg:tt)*) => ({
+//         use core::fmt::*;
+//         use crate::console::Console;
+//         let mut c = Console {};
+//         let _ = writeln!(&mut c, $($arg)*);
+//     });
+// }
 
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
@@ -40,7 +40,8 @@ fn halt() -> ! {
     println!("Bye COL{}\n\0", 331);
     loop {
         outw(0x604, 0x2000);
-        outw(0xB004, 0x2000); // for older qemu.
+        // For older versions of QEMU, 
+        outw(0xB004, 0x2000);
     }
 }
 

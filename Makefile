@@ -7,12 +7,22 @@ OBJS = src/*.rs
 # Using native tools (e.g., on X86 Linux)
 #TOOLPREFIX = 
 
+MAC_CCFLAGS := $(shell if [ "$(shell uname -s)" = "Darwin" ] && [ "$(shell uname -m)" = "arm64" ]; then \
+	echo "-Wno-error=infinite-recursion -Wno-error=array-bounds"; \
+	else \
+	echo ""; \
+fi)
+
 # Try to infer the correct TOOLPREFIX if not set
 ifndef TOOLPREFIX
 TOOLPREFIX := $(shell if i386-jos-elf-objdump -i 2>&1 | grep '^elf32-i386$$' >/dev/null 2>&1; \
 	then echo 'i386-jos-elf-'; \
 	elif objdump -i 2>&1 | grep 'elf32-i386' >/dev/null 2>&1; \
 	then echo ''; \
+	elif i686-elf-objdump -i 2>&1 | grep 'elf32-i386' >/dev/null 2>&1; \
+	then echo 'i686-elf-'; \
+	elif i386-elf-objdump -i 2>&1 | grep 'elf32-i386' >/dev/null 2>&1; \
+	then echo 'i386-elf-'; \
 	else echo "***" 1>&2; \
 	echo "*** Error: Couldn't find an i386-*-elf version of GCC/binutils." 1>&2; \
 	echo "*** Is the directory with i386-jos-elf-gcc in your PATH?" 1>&2; \
@@ -50,6 +60,7 @@ LD = $(TOOLPREFIX)ld
 OBJCOPY = $(TOOLPREFIX)objcopy
 OBJDUMP = $(TOOLPREFIX)objdump
 CFLAGS = -fno-pic -static -fno-builtin -fno-strict-aliasing -O2 -Wall -MD -ggdb -m32 -Werror -fno-omit-frame-pointer
+CFLAGS += $(MAC_CCFLAGS)
 CFLAGS += $(shell $(CC) -fno-stack-protector -E -x c /dev/null >/dev/null 2>&1 && echo -fno-stack-protector)
 ASFLAGS = -m32 -gdwarf-2 -Wa,-divide
 # FreeBSD ld wants ``elf_i386_fbsd''
@@ -77,15 +88,13 @@ bootblock: bootasm.S bootmain.c
 	./sign.pl bootblock
 
 kernel.a: $(OBJS)
-	cargo rustc -Z build-std=core -Z build-std-features=compiler-builtins-mem --target ./targets/i686.json --lib --release -- --emit link=kernel.a
+	cargo rustc -Z build-std=core -Z build-std-features=compiler-builtins-mem --target ./targets/i686-stage-3.json --lib --release -- --emit link=kernel.a
 
-kernel: kernel.a entry.o ./linkers/kernel.ld
-	ld -m elf_i386 -T ./linkers/kernel.ld -o kernel entry.o kernel.a
+kernel: kernel.a entry.o kernel.ld
+	$(LD) $(LDFLAGS) -T kernel.ld -o kernel entry.o kernel.a -b binary
 	$(OBJDUMP) -S -D kernel > kernel.asm
 	$(OBJDUMP) -t kernel | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$$/d' > kernel.sym
 
-# $(LD) $(LDFLAGS) -T kernel.ld -o kernel entry.o kernel.a -b binary
-# ld -m    elf_i386 -T kernel.ld -o kernel entry.o kernel.a -b binary
 # Prevent deletion of intermediate files, e.g. cat.o, after first build, so
 # that disk image changes after first build are persistent until clean.  More
 # details:
@@ -97,7 +106,7 @@ kernel: kernel.a entry.o ./linkers/kernel.ld
 clean: 
 	rm -f *.tex *.dvi *.idx *.aux *.log *.ind *.ilg \
 	*.a *.o *.d *.asm *.sym bootblock kernel xv6.img .gdbinit
-	rm -r target
+	cargo clean
 
 # run in emulators
 # try to generate a unique GDB port
