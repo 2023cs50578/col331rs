@@ -20,16 +20,7 @@ use ioapic::*;
 use picirq::*;
 use mp::*;
 
-// #[macro_export]
-// macro_rules! println {
-//     ($($arg:tt)*) => ({
-//         use core::fmt::*;
-//         use crate::console::Console;
-//         let mut c = Console {};
-//         let _ = writeln!(&mut c, $($arg)*);
-//     });
-// }
-
+#[cfg(not(test))]
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
     println!("Kernel Panic: {:?}", info);
