@@ -2,10 +2,9 @@
 name = "xv6"
 version = "0.1.0"
 edition = "2021"
+autobins = false
 
 [lib]
 name = "kernel"
 path = "src/main.rs"
 crate-type = ["staticlib"]
-
-[dependencies]
