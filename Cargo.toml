@@ -7,3 +7,5 @@ edition = "2021"
 name = "kernel"
 path = "src/main.rs"
 crate-type = ["staticlib"]
+
+[dependencies]
