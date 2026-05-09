@@ -2,13 +2,9 @@
 name = "xv6"
 version = "0.1.0"
 edition = "2021"
+autobins = false
 
 [lib]
 name = "kernel"
 path = "src/main.rs"
 crate-type = ["staticlib"]
-
-[profile.release]
-opt-level = "s"    # or "s" to optimize for size rather than speed
-codegen-units = 1  # fewer units can improve cross-function inlining
-lto = true 
